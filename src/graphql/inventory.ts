@@ -3,20 +3,19 @@ import { isMatch, getFilters } from './helpers.js';
 
 class inventoryAPI extends RESTDataSource {
   URLs: string[];
+  namespace: string;
   count: number;
 
-  constructor(URLs) {
+  constructor(URLs, namespace) {
     super();
     this.URLs = URLs;
+    this.namespace = namespace;
     this.count = 0;
   }
 
   getURL(vsphere) {
-    // TODO: make namespace variable
-    // const namespace = 'openshift-migration';
-    // const namespaceURL = `/namespaces/${namespace}/providers/vsphere`;
-    const namespaceURL = `/namespaces/openshift-migration/providers/vsphere`;
-    console.log('path', this.URLs[vsphere] + namespaceURL);
+    const namespaceURL = `/namespaces/${this.namespace}/providers/vsphere`;
+    // console.log('path', this.URLs[vsphere] + namespaceURL);
     return this.URLs[vsphere] + namespaceURL;
   }
 

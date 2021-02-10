@@ -1,0 +1,8 @@
+{
+    "inventoryAPIs": [
+        "https://forklift-inventory-openshift-migration.apps.cluster1.example.com",
+        "https://forklift-inventory-openshift-migration.apps.cluster2.example.com"
+    ],
+    "port": 9002,
+    "namespace": "openshift-migration"
+  }
