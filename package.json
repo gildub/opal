@@ -4,7 +4,7 @@
   "description": "On-premises analytics tool for MTV",
   "main": "./dist/src/server.js",
   "scripts": {
-    "start": "tsc --project ./tsconfig.json && node dist/src/server.js",
+    "start": "tsc --project ./tsconfig.json && NODE_TLS_REJECT_UNAUTHORIZED='0' node dist/src/server.js",
     "build": "tsc --project ./tsconfig.json",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
