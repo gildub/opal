@@ -23,6 +23,4 @@ const server = new ApolloServer({
 
 server.applyMiddleware({ app, path: '/graphql' });
 
-app.get('/', (req, res) => res.send('Express + TypeScript Server'));
-
 app.listen(port, () => console.log(`Listening on port ${port}`));
