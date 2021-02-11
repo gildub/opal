@@ -1,39 +1,50 @@
 import { RESTDataSource } from 'apollo-datasource-rest';
 import { isMatch, getFilters } from './helpers.js';
+import { inventoryAPIs, API } from './discovery.js';
+
+type VSphere = {
+  id: number;
+  url: string;
+  kind: string;
+  namespaces: string[];
+};
+
+type Provider = {
+  id: string;
+  name: string;
+  kind: string;
+  product: string;
+  vsphere: number;
+};
 
 class inventoryAPI extends RESTDataSource {
-  URLs: string[];
-  namespace: string;
-  count: number;
+  APIs: API[];
 
-  constructor(URLs, namespace) {
+  constructor() {
     super();
-    this.URLs = URLs;
-    this.namespace = namespace;
-    this.count = 0;
+    this.APIs = inventoryAPIs;
   }
 
-  getURL(vsphere) {
-    const namespaceURL = `/namespaces/${this.namespace}/providers/vsphere`;
-    // console.log('path', this.URLs[vsphere] + namespaceURL);
-    return this.URLs[vsphere] + namespaceURL;
+  getURL(vsphere: number): string {
+    const resourceBase = `namespaces/${this.APIs[vsphere].namespace}/providers/vsphere`;
+    // TODO: Handle multi vsphere inventory case
+    return `${this.APIs[0].url}/${resourceBase}`;
   }
 
-  async getVSphere(id) {
-    console.log(`${this.URLs[id]}/namespaces`);
-    const response = await this.get(`${this.URLs[id]}/namespaces`);
+  async getVSphere(id: number): Promise<VSphere> {
+    const response = await this.get(`${this.APIs[id].url}/namespaces`);
     return this.vsphereReducer(response);
   }
 
-  async getVSpheres() {
-    return Promise.all(this.URLs.map((e, i) => this.getVSphere(i)));
+  async getVSpheres(): Promise<VSphere[]> {
+    return Promise.all(this.APIs.map((e, i) => this.getVSphere(i)));
   }
 
-  vsphereReducer(vsphere) {
-    const id = this.count++;
+  vsphereReducer(vsphere): VSphere {
+    const index = this.APIs.findIndex((e) => e.url === vsphere.url);
     return {
-      id: id,
-      url: this.URLs[id],
+      id: index,
+      url: vsphere.url,
       kind: 'VSphere',
       namespaces: vsphere.map((namespace) => namespace.name),
     };
@@ -51,7 +62,7 @@ class inventoryAPI extends RESTDataSource {
     return this.providerReducer(vsphere, response);
   }
 
-  providerReducer(vsphere, provider) {
+  providerReducer(vsphere, provider): Provider {
     return {
       id: provider.uid,
       name: provider.name,
