@@ -10,20 +10,11 @@ const typeDefs = gql`
   union ClusterGroup = Folder | Cluster
   union VMGroup = Folder | VM
 
-  type VSphere {
-    id: ID!
-    kind: String
-    url: String
-    namespaces: [String]
-    providers: [Provider]
-  }
-
   type Provider {
     id: ID!
     name: String
     kind: String
     product: String
-    vsphere: VSphere
     datacenters: [Datacenter]
   }
 
@@ -194,12 +185,10 @@ const typeDefs = gql`
   }
 
   type Query {
-    vsphere(id: ID!): VSphere
-    vspheres: [VSphere]
     folder(provider: String!, id: ID!): Folder
     folders(provider: String!): [Folder]
-    provider(vsphere: Int!, name: String): Provider
-    providers(vsphere: Int!): [Provider]
+    provider(name: String): Provider
+    providers: [Provider]
     datacenter(provider: String!, id: ID!): Datacenter
     datacenters(provider: String!): [Datacenter]
     cluster(provider: String!, id: ID!): Cluster

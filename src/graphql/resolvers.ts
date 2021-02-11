@@ -1,15 +1,13 @@
 import { isMatch } from './helpers.js';
+import { Provider } from './inventory.js';
 
 const resolvers = {
   Query: {
-    vsphere: (_, { id }, { dataSources }) => dataSources.inventoryAPI.getVSphere(id),
-    vspheres: (_, __, { dataSources }) => dataSources.inventoryAPI.getVSpheres(),
     folders: (_, { provider }, { dataSources }) => dataSources.inventoryAPI.getFolders(provider),
     folder: (_, { provider, id }, { dataSources }) =>
       dataSources.inventoryAPI.getFolder(provider, id),
-    providers: (_, { vsphere }, { dataSources }) => dataSources.inventoryAPI.getProviders(vsphere),
-    provider: (_, { vsphere, name }, { dataSources }) =>
-      dataSources.inventoryAPI.getProvider(vsphere, name),
+    providers: (_, __, { dataSources }): Provider[] => dataSources.inventoryAPI.getProviders(),
+    provider: (_, { name }, { dataSources }) => dataSources.inventoryAPI.getProvider(name),
     datacenters: (_, { provider }, { dataSources }) =>
       dataSources.inventoryAPI.getDatacenters(provider),
     datacenter: (_, { provider, id }, { dataSources }) =>
@@ -78,48 +76,42 @@ const resolvers = {
       return children;
     },
   },
-  VSphere: {
-    providers: async (vsphere, _, { dataSources }) => {
-      const result = await dataSources.inventoryAPI.getProviders(vsphere.id);
-      return result.filter((e) => e != null);
-    },
-  },
   Provider: {
     datacenters: async (provider, _, { dataSources }) => {
       const result = await dataSources.inventoryAPI.getDatacenters(provider.name);
       return result.filter((e) => e != null);
     },
   },
-  // Datacenter: {
-  //   clusters: async (datacenter, _, { dataSources }) => {
-  //     const response = await dataSources.inventoryAPI.getFolder(
-  //       datacenter.provider,
-  //       datacenter.clusters.id
-  //     );
-  //     const children = [];
-  //     Promise.all(
-  //       response.children.map((child) => {
-  //         if (child.kind === 'Cluster')
-  //           children.push(dataSources.inventoryAPI.getCluster(datacenter.provider, child.id));
-  //       })
-  //     );
-  //     return children;
-  //   },
-  //   vms: async (datacenter, _, { dataSources }) => {
-  //     const response = await dataSources.inventoryAPI.getFolder(
-  //       datacenter.provider,
-  //       datacenter.vms.id
-  //     );
-  //     const children = [];
-  //     Promise.all(
-  //       response.children.map((child) => {
-  //         if (child.kind === 'VM')
-  //           children.push(dataSources.inventoryAPI.getVM(datacenter.provider, child.id));
-  //       })
-  //     );
-  //     return children;
-  //   },
-  // },
+  Datacenter: {
+    clusters: async (datacenter, _, { dataSources }) => {
+      const response = await dataSources.inventoryAPI.getFolder(
+        datacenter.provider,
+        datacenter.clusters.id
+      );
+      const children: string[] = [];
+      Promise.all(
+        response.children.map((child) => {
+          if (child.kind === 'Cluster')
+            children.push(dataSources.inventoryAPI.getCluster(datacenter.provider, child.id));
+        })
+      );
+      return children;
+    },
+    vms: async (datacenter, _, { dataSources }) => {
+      const response = await dataSources.inventoryAPI.getFolder(
+        datacenter.provider,
+        datacenter.vms.id
+      );
+      const children: string[] = [];
+      Promise.all(
+        response.children.map((child) => {
+          if (child.kind === 'VM')
+            children.push(dataSources.inventoryAPI.getVM(datacenter.provider, child.id));
+        })
+      );
+      return children;
+    },
+  },
   Cluster: {
     datastores: async (cluster, filter, { dataSources }) => {
       const ids = cluster.datastores.map((e) => e.id);
