@@ -54,6 +54,10 @@ const typeDefs = gql`
     id: ID!
     kind: String
     name: String
+    type: String
+    capacity: String
+    free: String
+    maintenance: String
   }
 
   type Host {
@@ -185,22 +189,24 @@ const typeDefs = gql`
   }
 
   type Query {
-    folder(provider: String!, id: ID!): Folder
-    folders(provider: String!): [Folder]
-    provider(name: String): Provider
+    folders: [Folder]
+    folder(id: ID!): Folder
     providers: [Provider]
-    datacenter(provider: String!, id: ID!): Datacenter
-    datacenters(provider: String!): [Datacenter]
-    cluster(provider: String!, id: ID!): Cluster
-    clusters(provider: String!): [Cluster]
-    datastore(provider: String!, id: ID!): Datastore
-    datastores(provider: String!): [Datastore]
-    host(provider: String!, id: ID!): Host
-    hosts(provider: String!): [Host]
-    network(provider: String!, id: ID!): Network
-    networks(provider: String!, filter: NetworkFilter): [Network]
-    vm(id: ID!): VM
+    provider(name: String): Provider
+    datacenters: [Datacenter]
+    datacenter(id: ID!): Datacenter
+
+    clusters: [Cluster]
+    cluster(id: ID!): Cluster
+    datastores: [Datastore]
+    datastore(id: ID!): Datastore
+    hosts: [Host]
+    host(id: ID!): Host
+    networks(filter: NetworkFilter): [Network]
+    network(id: ID!): Network
+
     vms(filter: VMFilter): [VM]
+    vm(id: ID!): VM
   }
 `;
 

@@ -1,6 +1,6 @@
 export const isMatch = (vm, filter) => {
   let noMatch = true;
-  for (let [k, v] of Object.entries(filter)) {
+  for (const [k, v] of Object.entries(filter)) {
     if (typeof v === 'string') {
       const reg = new RegExp(v);
       if (!vm[k].match(reg)) noMatch = false;
@@ -16,3 +16,5 @@ export const getFilters = (filter) => {
   }
   return newFilters;
 };
+
+export const getProvider = (vmId: string): string => vmId.split('.')[1];

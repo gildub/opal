@@ -1,30 +1,22 @@
-import { isMatch } from './helpers.js';
+import { isMatch, getProvider } from './helpers.js';
 import { Provider } from './inventory.js';
 
 const resolvers = {
   Query: {
-    folders: (_, { provider }, { dataSources }) => dataSources.inventoryAPI.getFolders(provider),
-    folder: (_, { provider, id }, { dataSources }) =>
-      dataSources.inventoryAPI.getFolder(provider, id),
+    folders: (_, __, { dataSources }) => dataSources.inventoryAPI.getFolders(),
+    folder: (_, { id }, { dataSources }) => dataSources.inventoryAPI.getFolder(id),
     providers: (_, __, { dataSources }): Provider[] => dataSources.inventoryAPI.getProviders(),
     provider: (_, { name }, { dataSources }) => dataSources.inventoryAPI.getProvider(name),
-    datacenters: (_, { provider }, { dataSources }) =>
-      dataSources.inventoryAPI.getDatacenters(provider),
-    datacenter: (_, { provider, id }, { dataSources }) =>
-      dataSources.inventoryAPI.getDatacenter(provider, id),
-    clusters: (_, { provider }, { dataSources }) => dataSources.inventoryAPI.getClusters(provider),
-    cluster: (_, { provider, id }, { dataSources }) =>
-      dataSources.inventoryAPI.getCluster(provider, id),
-    datastores: (_, { provider }, { dataSources }) =>
-      dataSources.inventoryAPI.getDatastores(provider),
-    datastore: (_, { provider, id }, { dataSources }) =>
-      dataSources.inventoryAPI.getDatastore(provider, id),
-    hosts: (_, { provider }, { dataSources }) => dataSources.inventoryAPI.getHosts(provider),
-    host: (_, { provider, id }, { dataSources }) => dataSources.inventoryAPI.getHost(provider, id),
-    networks: (_, { provider, filter }, { dataSources }) =>
-      dataSources.inventoryAPI.getNetworks(provider, filter),
-    network: (_, { provider, id }, { dataSources }) =>
-      dataSources.inventoryAPI.getNetwork(provider, id),
+    datacenters: (_, __, { dataSources }) => dataSources.inventoryAPI.getDatacenters(),
+    datacenter: (_, { id }, { dataSources }) => dataSources.inventoryAPI.getDatacenter(id),
+    clusters: (_, __, { dataSources }) => dataSources.inventoryAPI.getClusters(),
+    cluster: (_, { id }, { dataSources }) => dataSources.inventoryAPI.getCluster(id),
+    datastores: (_, __, { dataSources }) => dataSources.inventoryAPI.getDatastores(),
+    datastore: (_, { id }, { dataSources }) => dataSources.inventoryAPI.getDatastore(id),
+    hosts: (_, __, { dataSources }) => dataSources.inventoryAPI.getHosts(),
+    host: (_, { id }, { dataSources }) => dataSources.inventoryAPI.getHost(id),
+    networks: (_, { filter }, { dataSources }) => dataSources.inventoryAPI.getNetworks(filter),
+    network: (_, { id }, { dataSources }) => dataSources.inventoryAPI.getNetwork(id),
     vm: (_, { id }, { dataSources }) => dataSources.inventoryAPI.getVM(id),
     vms: (_, { filter }, { dataSources }) => dataSources.inventoryAPI.getVMs(filter),
   },
@@ -58,18 +50,17 @@ const resolvers = {
       const children: string[] = [];
       Promise.all(
         folder.children.map((child) => {
-          if (child.kind === 'Folder')
-            children.push(dataSources.inventoryAPI.getFolder(folder.provider, child.id));
+          console.log(child);
+          if (child.kind === 'Folder') children.push(dataSources.inventoryAPI.getFolder(child.id));
           if (child.kind === 'Datacenter') {
-            children.push(dataSources.inventoryAPI.getDatacenter(folder.provider, child.id));
+            children.push(dataSources.inventoryAPI.getDatacenter(child.id));
           }
           if (child.kind === 'Cluster')
-            children.push(dataSources.inventoryAPI.getCluster(folder.provider, child.id));
+            children.push(dataSources.inventoryAPI.getCluster(child.id));
           if (child.kind === 'Datastore')
-            children.push(dataSources.inventoryAPI.getDatastore(folder.provider, child.id));
-          // if (child.kind === 'Network') children.push(dataSources.inventoryAPI.getNetwork(folder.provider, child.id));
-          if (child.kind === 'VM')
-            children.push(dataSources.inventoryAPI.getVM(folder.provider, child.id));
+            children.push(dataSources.inventoryAPI.getDatastore(child.id));
+          // if (child.kind === 'Network') children.push(dataSources.inventoryAPI.getNetwork(child.id));
+          if (child.kind === 'VM') children.push(dataSources.inventoryAPI.getVM(child.id));
         })
       );
       return children;
@@ -83,29 +74,27 @@ const resolvers = {
   },
   Datacenter: {
     clusters: async (datacenter, _, { dataSources }) => {
-      const response = await dataSources.inventoryAPI.getFolder(
-        datacenter.provider,
-        datacenter.clusters.id
-      );
+      const folderId = `${datacenter.clusters.id}.${getProvider(datacenter.id)}`;
+      const response = await dataSources.inventoryAPI.getFolder(folderId);
       const children: string[] = [];
       Promise.all(
         response.children.map((child) => {
-          if (child.kind === 'Cluster')
-            children.push(dataSources.inventoryAPI.getCluster(datacenter.provider, child.id));
+          const childId = `${child.id}.${getProvider(datacenter.id)}`;
+          if (child.kind === 'Cluster') children.push(dataSources.inventoryAPI.getCluster(childId));
+          if (child.kind === 'Folder') children.push(dataSources.inventoryAPI.getFolder(childId));
         })
       );
       return children;
     },
     vms: async (datacenter, _, { dataSources }) => {
-      const response = await dataSources.inventoryAPI.getFolder(
-        datacenter.provider,
-        datacenter.vms.id
-      );
+      const folderId = `${datacenter.vms.id}.${getProvider(datacenter.id)}`;
+      console.log(folderId);
+      const response = await dataSources.inventoryAPI.getFolder(folderId);
       const children: string[] = [];
       Promise.all(
         response.children.map((child) => {
-          if (child.kind === 'VM')
-            children.push(dataSources.inventoryAPI.getVM(datacenter.provider, child.id));
+          const vmId = `${child.id}.${getProvider(datacenter.id)}`;
+          if (child.kind === 'VM') children.push(dataSources.inventoryAPI.getVM(vmId));
         })
       );
       return children;
@@ -131,12 +120,16 @@ const resolvers = {
     },
     host: async (vm, { id }, { dataSources }) => {
       const hostId = id ? id : vm.hostId;
-      const response = await dataSources.inventoryAPI.getHost(vm.provider, hostId);
+      const response = await dataSources.inventoryAPI.getHost(getProvider(vm.id), hostId);
       return response;
     },
     networks: async (vm, filter, { dataSources }) => {
       const ids = vm.networks.map((e) => e.id);
-      const result = await dataSources.inventoryAPI.getNetworksByIds(vm.provider, ids, filter);
+      const result = await dataSources.inventoryAPI.getNetworksByIds(
+        getProvider(vm.id),
+        ids,
+        filter
+      );
       return result.filter((e) => e != null);
     },
   },
