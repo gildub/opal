@@ -199,8 +199,8 @@ const typeDefs = gql`
     hosts(provider: String!): [Host]
     network(provider: String!, id: ID!): Network
     networks(provider: String!, filter: NetworkFilter): [Network]
-    vm(provider: String!, id: ID!): VM
-    vms(provider: String!, filter: VMFilter): [VM]
+    vm(id: ID!): VM
+    vms(filter: VMFilter): [VM]
   }
 `;
 

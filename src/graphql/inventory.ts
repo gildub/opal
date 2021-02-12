@@ -134,27 +134,36 @@ class inventoryAPI extends RESTDataSource {
     };
   }
 
-  async getVMs(provider, filter = {}) {
+  async getVMs(filter = {}) {
+    const providers = await this.getProviders();
+    const result = Promise.all(
+      providers.map((provider) => this.getVMsByProvider(provider.name, filter))
+    );
+    return (await result).flat();
+  }
+
+  async getVMsByProvider(provider, filter = {}) {
     const response = await this.get(`${this.getURL()}/${provider}/vms?detail=1`);
     const vms = Array.isArray(response) ? response.map((vm) => this.VMReducer(provider, vm)) : [];
     return vms.filter((vm) => isMatch(vm, getFilters(filter)));
   }
 
-  async getVM(provider, id, filter = {}) {
-    const response = await this.get(`${this.getURL()}/${provider}/vms/${id}`);
+  async getVM(uid, filter = {}) {
+    const [key, provider] = uid.split('.');
+    console.log(provider);
+    const response = await this.get(`${this.getURL()}/${provider}/vms/${key}`);
     const vm = this.VMReducer(provider, response);
     return isMatch(vm, getFilters(filter)) ? vm : null;
   }
 
-  async getVMsByIds(provider, ids, filter = {}) {
-    return Promise.all(ids.map((id) => this.getVM(provider, id, filter)));
+  async getVMsByIds(ids, filter = {}) {
+    return Promise.all(ids.map((id) => this.getVM(id, filter)));
   }
 
   VMReducer(provider, vm) {
     return {
-      id: vm.id,
+      id: `${vm.id}.${provider}`,
       kind: 'VM',
-      provider: provider,
       parent: vm.parent,
       name: vm.name,
       path: vm.path,

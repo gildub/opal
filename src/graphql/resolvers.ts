@@ -25,9 +25,8 @@ const resolvers = {
       dataSources.inventoryAPI.getNetworks(provider, filter),
     network: (_, { provider, id }, { dataSources }) =>
       dataSources.inventoryAPI.getNetwork(provider, id),
-    vm: (_, { provider, id }, { dataSources }) => dataSources.inventoryAPI.getVM(provider, id),
-    vms: (_, { provider, filter }, { dataSources }) =>
-      dataSources.inventoryAPI.getVMs(provider, filter),
+    vm: (_, { id }, { dataSources }) => dataSources.inventoryAPI.getVM(id),
+    vms: (_, { filter }, { dataSources }) => dataSources.inventoryAPI.getVMs(filter),
   },
   FolderGroup: {
     __resolveType(obj) {
@@ -56,21 +55,21 @@ const resolvers = {
   },
   Folder: {
     children: async (folder, _, { dataSources }) => {
-      const children = [];
+      const children: string[] = [];
       Promise.all(
         folder.children.map((child) => {
-          // if (child.kind === 'Folder')
-          //   children.push(dataSources.inventoryAPI.getFolder(folder.provider, child.id));
-          // if (child.kind === 'Datacenter') {
-          //   children.push(dataSources.inventoryAPI.getDatacenter(folder.provider, child.id));
-          // }
-          // if (child.kind === 'Cluster')
-          //   children.push(dataSources.inventoryAPI.getCluster(folder.provider, child.id));
-          // if (child.kind === 'Datastore')
-          //   children.push(dataSources.inventoryAPI.getDatastore(folder.provider, child.id));
-          // // if (child.kind === 'Network') children.push(dataSources.inventoryAPI.getNetwork(folder.provider, child.id));
-          // if (child.kind === 'VM')
-          //   children.push(dataSources.inventoryAPI.getVM(folder.provider, child.id));
+          if (child.kind === 'Folder')
+            children.push(dataSources.inventoryAPI.getFolder(folder.provider, child.id));
+          if (child.kind === 'Datacenter') {
+            children.push(dataSources.inventoryAPI.getDatacenter(folder.provider, child.id));
+          }
+          if (child.kind === 'Cluster')
+            children.push(dataSources.inventoryAPI.getCluster(folder.provider, child.id));
+          if (child.kind === 'Datastore')
+            children.push(dataSources.inventoryAPI.getDatastore(folder.provider, child.id));
+          // if (child.kind === 'Network') children.push(dataSources.inventoryAPI.getNetwork(folder.provider, child.id));
+          if (child.kind === 'VM')
+            children.push(dataSources.inventoryAPI.getVM(folder.provider, child.id));
         })
       );
       return children;

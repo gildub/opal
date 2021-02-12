@@ -4,8 +4,10 @@
   "description": "On-premises analytics tool for MTV",
   "main": "./dist/src/server.js",
   "scripts": {
-    "start": "NODE_TLS_REJECT_UNAUTHORIZED='0' node dist/src/server.js",
     "build": "tsc --project ./tsconfig.json",
+    "build:dev": "tsc -w --project ./tsconfig.json",
+    "start": "NODE_TLS_REJECT_UNAUTHORIZED='0' node dist/src/server.js",
+    "start:dev": "NODE_TLS_REJECT_UNAUTHORIZED='0' nodemon --watch dist/src dist/src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -27,6 +29,7 @@
     "eslint": "^7.19.0",
     "eslint-config-prettier": "^7.2.0",
     "eslint-plugin-prettier": "^3.3.1",
+    "nodemon": "^2.0.7",
     "prettier": "^2.2.1",
     "typescript": "^4.1.4"
   },
