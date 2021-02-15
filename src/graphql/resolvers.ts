@@ -1,4 +1,4 @@
-import { isMatch, getProvider } from './helpers.js';
+import { isMatch, getProvider, getChildren } from './helpers.js';
 import { Provider } from './inventory.js';
 
 const resolvers = {
@@ -75,35 +75,35 @@ const resolvers = {
   Datacenter: {
     clusters: async (datacenter, _, { dataSources }) => {
       const folderId = `${datacenter.clusters.id}.${getProvider(datacenter.id)}`;
-      const response = await dataSources.inventoryAPI.getFolder(folderId);
-      const children: string[] = [];
-      Promise.all(
-        response.children.map((child) => {
-          const childId = `${child.id}.${getProvider(datacenter.id)}`;
-          if (child.kind === 'Cluster') children.push(dataSources.inventoryAPI.getCluster(childId));
-          if (child.kind === 'Folder') children.push(dataSources.inventoryAPI.getFolder(childId));
-        })
-      );
-      return children;
+      return await getChildren(folderId, dataSources);
+    },
+    datastores: async (datacenter, _, { dataSources }) => {
+      const folderId = `${datacenter.datastores.id}.${getProvider(datacenter.id)}`;
+      return await getChildren(folderId, dataSources);
+    },
+    networks: async (datacenter, _, { dataSources }) => {
+      const folderId = `${datacenter.netorks.id}.${getProvider(datacenter.id)}`;
+      return await getChildren(folderId, dataSources);
     },
     vms: async (datacenter, _, { dataSources }) => {
       const folderId = `${datacenter.vms.id}.${getProvider(datacenter.id)}`;
-      console.log(folderId);
-      const response = await dataSources.inventoryAPI.getFolder(folderId);
-      const children: string[] = [];
-      Promise.all(
-        response.children.map((child) => {
-          const vmId = `${child.id}.${getProvider(datacenter.id)}`;
-          if (child.kind === 'VM') children.push(dataSources.inventoryAPI.getVM(vmId));
-        })
-      );
-      return children;
+      return await getChildren(folderId, dataSources);
     },
   },
   Cluster: {
     datastores: async (cluster, filter, { dataSources }) => {
       const ids = cluster.datastores.map((e) => e.id);
-      const result = await dataSources.inventoryAPI.getDatastores(cluster.provider, ids, filter);
+      const result = dataSources.inventoryAPI.getDatastores(cluster.provider, ids, filter);
+      return result.filter((e) => e != null);
+    },
+    hosts: async (cluster, filter, { dataSources }) => {
+      const ids = cluster.datastores.map((e) => e.id);
+      const result = await dataSources.inventoryAPI.getHosts(cluster.provider, ids, filter);
+      return result.filter((e) => e != null);
+    },
+    networks: async (cluster, filter, { dataSources }) => {
+      const ids = cluster.datastores.map((e) => e.id);
+      const result = await dataSources.inventoryAPI.getNetworks(cluster.provider, ids, filter);
       return result.filter((e) => e != null);
     },
   },

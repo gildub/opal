@@ -1,5 +1,4 @@
 import express from 'express';
-import fs from 'fs';
 import { ApolloServer } from 'apollo-server-express';
 
 import typeDefs from './graphql/schema.js';

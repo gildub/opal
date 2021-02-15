@@ -1,5 +1,5 @@
 import { RESTDataSource } from 'apollo-datasource-rest';
-import { isMatch, getFilters } from './helpers.js';
+import { isMatch, getFilters, getProvider } from './helpers.js';
 import { inventoryAPIs, API } from './discovery.js';
 
 // TODO: use typegraphql.com approach to benefit from single source
@@ -37,7 +37,11 @@ class inventoryAPI extends RESTDataSource {
     return this.providerReducer(response);
   }
 
-  providerReducer(provider): Provider {
+  async getFolderTree(name) {
+    return await this.get(`${this.getURL()}/${name}/tree/host?detail=1`);
+  }
+
+  providerReducer(provider) {
     return {
       id: provider.uid,
       name: provider.name,
@@ -67,7 +71,7 @@ class inventoryAPI extends RESTDataSource {
     return this.folderReducer(provider, response);
   }
 
-  async getFoldersByIds(provider, ids, filter = {}) {
+  async getFoldersByIds(ids, filter = {}) {
     return Promise.all(ids.map((id) => this.getFolder(id)));
   }
 
@@ -108,6 +112,8 @@ class inventoryAPI extends RESTDataSource {
       kind: 'Datacenter',
       name: datacenter.name,
       clusters: datacenter.clusters,
+      datastores: datacenter.datastores,
+      networks: datacenter.networks,
       vms: datacenter.vms,
     };
   }

@@ -10,14 +10,6 @@ const typeDefs = gql`
   union ClusterGroup = Folder | Cluster
   union VMGroup = Folder | VM
 
-  type Provider {
-    id: ID!
-    name: String
-    kind: String
-    product: String
-    datacenters: [Datacenter]
-  }
-
   type Folder {
     id: ID!
     kind: String
@@ -26,13 +18,23 @@ const typeDefs = gql`
     children: [FolderGroup]
   }
 
+  type Provider {
+    id: ID!
+    name: String
+    kind: String
+    product: String
+    datacenters: [Datacenter]
+  }
+
   type Datacenter {
     id: ID!
     kind: String
     name: String
     parent: Link
-    clusters: [ClusterGroup]
-    vms: [VMGroup]
+    clusters: [Cluster]
+    networks: [Network]
+    datastores: [Datastore]
+    vms: [VM]
   }
 
   type Cluster {
@@ -58,6 +60,7 @@ const typeDefs = gql`
     capacity: String
     free: String
     maintenance: String
+    vms: [VM]
   }
 
   type Host {
@@ -70,7 +73,7 @@ const typeDefs = gql`
     parent: Link
     path: String
     productVersion: String
-    networking: Networking
+    configNetwork: ConfigNetwork
     networks: [Network]
     datastores: [Datastore]
     vms(id: String, memoryMB: Int, powerState: String): [VM]
@@ -86,11 +89,11 @@ const typeDefs = gql`
     type: String
   }
 
-  type Networking {
+  type ConfigNetwork {
     vNICs: [VNIC]
     pNICs: [PNIC]
     portGroups: [PortGroup]
-    switches: [Switch]
+    vSwitches: [VSwitch]
   }
 
   type VNIC {
@@ -109,10 +112,10 @@ const typeDefs = gql`
   type PortGroup {
     key: String
     name: String
-    vSwitch: String
+    vswitch: VSwitch
   }
 
-  type Switch {
+  type VSwitch {
     key: String
     name: String
     portGroups: [PortGroup]
