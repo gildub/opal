@@ -1,5 +1,5 @@
 import { RESTDataSource } from 'apollo-datasource-rest';
-import { isMatch, getFilters, getProvider } from './helpers.js';
+import { isMatch, getFilters, getKey } from './helpers.js';
 import { inventoryAPIs, API } from './discovery.js';
 
 // TODO: use typegraphql.com approach to benefit from single source
@@ -35,10 +35,6 @@ class inventoryAPI extends RESTDataSource {
   async getProvider(name) {
     const response = await this.get(`${this.getURL()}/${name}`);
     return this.providerReducer(response);
-  }
-
-  async getFolderTree(name) {
-    return await this.get(`${this.getURL()}/${name}/tree/host?detail=1`);
   }
 
   providerReducer(provider) {
@@ -162,28 +158,37 @@ class inventoryAPI extends RESTDataSource {
     };
   }
 
-  async getHosts() {
+  async getHosts(filter = {}) {
     const providers = await this.getProviders();
-    const result = Promise.all(providers.map((provider) => this.getHostsByProvider(provider.name)));
+    const result = Promise.all(
+      providers.map((provider) => this.getHostsByProvider(provider.name, filter))
+    );
     return (await result).flat();
   }
 
-  async getHostsByProvider(provider) {
+  async getHostsByProvider(provider, filter = {}) {
     const response = await this.get(`${this.getURL()}/${provider}/hosts?detail=1`);
-    return Array.isArray(response) ? response.map((host) => this.hostReducer(provider, host)) : [];
+    const hosts = Array.isArray(response)
+      ? response.map((host) => this.hostReducer(provider, host))
+      : [];
+    return hosts.filter((vm) => isMatch(vm, getFilters(filter)));
   }
 
-  async getHost(id) {
+  async getHost(id, filter = {}) {
     const [key, provider] = id.split('.');
     const response = await this.get(`${this.getURL()}/${provider}/hosts/${key}`);
-    return this.hostReducer(provider, response);
+    const host = this.hostReducer(provider, response);
+    return isMatch(host, getFilters(filter)) ? host : null;
+  }
+
+  async getHostsByIds(ids) {
+    return Promise.all(ids.map((id) => this.getHost(id)));
   }
 
   hostReducer(provider, host) {
     return {
       id: `${host.id}.${provider}`,
       name: host.name,
-      provider: provider,
       inMaintenance: host.inMaintenance,
       cpuCores: host.cpuCores,
       cpuSockets: host.cpuSockets,
@@ -191,11 +196,92 @@ class inventoryAPI extends RESTDataSource {
       parent: host.parent,
       path: host.path,
       productVersion: host.productVersion,
+      datastores: host.datastores,
       // networking: host.networking,
       // networks: host.networks,
-      // datastores: host.datastores,
-      vms: host.vms,
       // networkAdapters: host.networkAdapters,
+      vms: host.vms,
+    };
+  }
+
+  async getDatastores() {
+    const providers = await this.getProviders();
+    const result = Promise.all(
+      providers.map((provider) => this.getDatastoresByProvider(provider.name))
+    );
+    return (await result).flat();
+  }
+
+  async getDatastoresByProvider(provider) {
+    const response = await this.get(`${this.getURL()}/${provider}/datastores?detail=1`);
+    return Array.isArray(response)
+      ? response.map((datastore) => this.datastoreReducer(provider, datastore))
+      : [];
+  }
+
+  async getDatastore(id, filter = {}) {
+    const [key, provider] = id.split('.');
+    const response = await this.get(`${this.getURL()}/${provider}/datastores/${key}`);
+    const datastore = this.datastoreReducer(provider, response);
+    return isMatch(datastore, getFilters(filter)) ? datastore : null;
+  }
+
+  async getDatastoresByIds(ids, filter = {}) {
+    return Promise.all(ids.map((id) => this.getDatastore(id)));
+  }
+
+  datastoreReducer(provider, datastore) {
+    return {
+      id: `${datastore.id}.${provider}`,
+      kind: 'Datastore',
+      name: datastore.name,
+      type: datastore.type,
+      parent: datastore.parent,
+      capacity: datastore.capacity,
+      free: datastore.free,
+      maintenance: datastore.maintenance,
+      hosts: datastore.hosts,
+      vms: datastore.vms,
+    };
+  }
+
+  async getNetworks(filter = {}) {
+    const providers = await this.getProviders();
+    const result = Promise.all(
+      providers.map((provider) => this.getNetworksByProvider(provider.name, filter))
+    );
+    return (await result).flat();
+  }
+
+  async getNetworksByProvider(provider, filter) {
+    const response = await this.get(`${this.getURL()}/${provider}/networks?detail=1`);
+    const networks = Array.isArray(response)
+      ? response.map((network) => this.networkReducer(provider, network))
+      : [];
+    return networks.filter((network) => isMatch(network, getFilters(filter)));
+  }
+
+  async getNetwork(id, filter = {}) {
+    const [key, provider] = id.split('.');
+    const response = await this.get(`${this.getURL()}/${provider}/networks/${key}`);
+    const network = this.networkReducer(provider, response);
+    return isMatch(network, getFilters(filter)) ? network : null;
+  }
+
+  async getNetworksByIds(ids, filter = {}) {
+    return Promise.all(ids.map((id) => this.getNetwork(id, filter)));
+  }
+
+  networkReducer(provider, network) {
+    let kind = '';
+    if (network.variant === 'Standard') kind = 'Network';
+    if (network.variant === 'DvPortGroup') kind = 'DVPortGroup';
+    if (network.variant === 'DvSwitch') kind = 'DVSwitch';
+    return {
+      id: `${network.id}.${provider}`,
+      kind: kind,
+      name: network.name,
+      path: network.path,
     };
   }
 
@@ -245,88 +331,13 @@ class inventoryAPI extends RESTDataSource {
       balloonedMemory: vm.balloonedMemory,
       ipAddress: vm.ipAddress,
       storageUsed: vm.storageUsed,
-      hostId: vm.host.id,
+      host: vm.host.id,
       concerns: vm.concerns,
       networks: vm.networks,
       disks: vm.disks,
       numaNodeAffinity: vm.numaNodeAffinity,
       devices: vm.devices,
       cpuAffinity: vm.cpuAffinity,
-    };
-  }
-
-  async getDatastores() {
-    const providers = await this.getProviders();
-    const result = Promise.all(
-      providers.map((provider) => this.getDatastoresByProvider(provider.name))
-    );
-    return (await result).flat();
-  }
-
-  async getDatastoresByProvider(provider) {
-    const response = await this.get(`${this.getURL()}/${provider}/datastores?detail=1`);
-    return Array.isArray(response)
-      ? response.map((datastore) => this.datastoreReducer(provider, datastore))
-      : [];
-  }
-
-  async getDatastore(id, filter = {}) {
-    const [key, provider] = id.split('.');
-    const response = await this.get(`${this.getURL()}/${provider}/datastores/${key}`);
-    const datastore = this.datastoreReducer(provider, response);
-    return isMatch(datastore, getFilters(filter)) ? datastore : null;
-  }
-
-  async getDatastoresByIds(provider, ids, filter = {}) {
-    return Promise.all(ids.map((id) => this.getDatastore(id)));
-  }
-
-  datastoreReducer(provider, datastore) {
-    return {
-      id: `${datastore.id}.${provider}`,
-      kind: 'Datastore',
-      name: datastore.name,
-      type: datastore.type,
-      capacity: datastore.capacity,
-      free: datastore.free,
-      maintenance: datastore.maintenance,
-    };
-  }
-
-  async getNetworks(filter = {}) {
-    const providers = await this.getProviders();
-    const result = Promise.all(
-      providers.map((provider) => this.getNetworksByProvider(provider.name, filter))
-    );
-    return (await result).flat();
-  }
-
-  async getNetworksByProvider(provider, filter) {
-    const response = await this.get(`${this.getURL()}/${provider}/networks?detail=1`);
-    const networks = Array.isArray(response)
-      ? response.map((network) => this.networkReducer(provider, network))
-      : [];
-    return networks.filter((network) => isMatch(network, getFilters(filter)));
-  }
-
-  async getNetwork(id, filter = {}) {
-    const [key, provider] = id.split('.');
-    const response = await this.get(`${this.getURL()}/${provider}/networks/${key}`);
-    const network = this.networkReducer(provider, response);
-    return isMatch(network, getFilters(filter)) ? network : null;
-  }
-
-  async getNetworksByIds(ids, filter = {}) {
-    return Promise.all(ids.map((id) => this.getNetwork(id, filter)));
-  }
-
-  networkReducer(provider, network) {
-    return {
-      id: `${network.id}.${provider}`,
-      kind: 'Network',
-      name: network.name,
-      path: network.path,
-      type: network.type,
     };
   }
 }

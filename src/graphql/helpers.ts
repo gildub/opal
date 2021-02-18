@@ -19,17 +19,24 @@ export const getFilters = (filter) => {
   return newFilters;
 };
 
-export const getProvider = (vmId: string): unknown => vmId.split('.')[1];
+export const getProvider = (id: string): unknown => id.split('.')[1];
+export const getKey = (id: string): unknown => id.split('.')[0];
 
-export const getChildren = async (folderId, dataSources): Promise<unknown[]> => {
+export const getChildren = async (folderId, dataSources, flatten = false): Promise<unknown[]> => {
   const response = await dataSources.inventoryAPI.getFolder(folderId);
   const children = response.children.map((child) => {
     const childId = `${child.id}.${getProvider(folderId)}`;
-    if (child.kind === 'Folder') return getChildren(childId, dataSources);
-    if (child.kind === 'VM') return dataSources.inventoryAPI.getVM(childId);
+    if (child.kind === 'Folder') {
+      return flatten
+        ? getChildren(childId, dataSources)
+        : dataSources.inventoryAPI.getFolder(childId);
+    }
+    if (child.kind === 'Datacenter') return dataSources.inventoryAPI.getDatacenter(childId);
     if (child.kind === 'Cluster') return dataSources.inventoryAPI.getCluster(childId);
     if (child.kind === 'Datastore') return dataSources.inventoryAPI.getDatastore(childId);
-    if (child.kind === 'Network') return dataSources.inventoryAPI.getNetwork(childId);
+    if (/Network|DVPortGroup|DVSwitch/.test(child.kind))
+      return dataSources.inventoryAPI.getNetwork(childId);
+    if (child.kind === 'VM') return dataSources.inventoryAPI.getVM(childId);
   });
 
   const kids = await Promise.all(children);

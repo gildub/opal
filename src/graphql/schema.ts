@@ -6,9 +6,18 @@ const typeDefs = gql`
     id: String
   }
 
-  union FolderGroup = Folder | VM | Datacenter | Cluster | Datastore | Network
+  union FolderGroup =
+      Folder
+    | Datacenter
+    | Cluster
+    | Datastore
+    | Network
+    | DVPortGroup
+    | DVSwitch
+    | VM
   union ClusterGroup = Folder | Cluster
   union VMGroup = Folder | VM
+  union NetworkGroup = Network | DVPortGroup | DVSwitch
 
   type Folder {
     id: ID!
@@ -32,9 +41,9 @@ const typeDefs = gql`
     name: String
     parent: Link
     clusters: [Cluster]
-    networks: [Network]
+    networks: [NetworkGroup]
     datastores: [Datastore]
-    vms: [VM]
+    vms: [VMGroup]
   }
 
   type Cluster {
@@ -43,24 +52,13 @@ const typeDefs = gql`
     name: String
     path: String
     datastores: [Datastore]
-    networks: [Network]
+    networks: [NetworkGroup]
     hosts: [Host]
     dasEnabled: Boolean
     dasVms: [String]
     drsEnabled: Boolean
     drsBehavior: String
     drsVms: [String]
-  }
-
-  type Datastore {
-    id: ID!
-    kind: String
-    name: String
-    type: String
-    capacity: String
-    free: String
-    maintenance: String
-    vms: [VM]
   }
 
   type Host {
@@ -74,10 +72,22 @@ const typeDefs = gql`
     path: String
     productVersion: String
     configNetwork: ConfigNetwork
-    networks: [Network]
+    networks: [NetworkGroup]
     datastores: [Datastore]
-    vms(id: String, memoryMB: Int, powerState: String): [VM]
     networkAdapters: [NetworkAdapter]
+    vms(id: String, memoryMB: Int, powerState: String): [VM]
+  }
+
+  type Datastore {
+    id: ID!
+    kind: String
+    name: String
+    type: String
+    capacity: String
+    free: String
+    maintenance: String
+    hosts: [Host]
+    vms: [VM]
   }
 
   type Network {
@@ -86,7 +96,26 @@ const typeDefs = gql`
     name: String
     parent: Folder
     path: String
-    type: String
+    vms: [VM]
+  }
+
+  type DVPortGroup {
+    id: ID!
+    kind: String
+    name: String
+    parent: Folder
+    path: String
+    ports: [String]
+    vms: [VM]
+  }
+
+  type DVSwitch {
+    id: ID!
+    kind: String
+    name: String
+    parent: Folder
+    path: String
+    portgroups: [DVPortGroup]
   }
 
   type ConfigNetwork {
@@ -94,19 +123,6 @@ const typeDefs = gql`
     pNICs: [PNIC]
     portGroups: [PortGroup]
     vSwitches: [VSwitch]
-  }
-
-  type VNIC {
-    key: String
-    linkSpeed: Int
-  }
-
-  type PNIC {
-    key: String
-    portGroup: String
-    dPortGroup: String
-    ipAddress: String
-    mtu: Int
   }
 
   type PortGroup {
@@ -120,6 +136,19 @@ const typeDefs = gql`
     name: String
     portGroups: [PortGroup]
     pNICs: [PNIC]
+  }
+
+  type VNIC {
+    key: String
+    linkSpeed: Int
+  }
+
+  type PNIC {
+    key: String
+    portGroup: String
+    dPortGroup: String
+    ipAddress: String
+    mtu: Int
   }
 
   type NetworkAdapter {
@@ -154,7 +183,7 @@ const typeDefs = gql`
     devices: [Device]
     cpuAffinity: [Int]
     host(id: String): Host
-    networks(id: String, type: String): [Network]
+    networks(id: String, type: String): [NetworkGroup]
     revisionAnalyzed: Int
     disks: [Disk]
     concerns(label: String, category: String): [Concern]
@@ -186,6 +215,11 @@ const typeDefs = gql`
     memoryMB: Int
   }
 
+  input HostFilter {
+    id: String
+    inMaintenance: Boolean
+  }
+
   input NetworkFilter {
     id: String
     type: String
@@ -194,19 +228,19 @@ const typeDefs = gql`
   type Query {
     folders: [Folder]
     folder(id: ID!): Folder
+
     providers: [Provider]
     provider(name: String): Provider
     datacenters: [Datacenter]
     datacenter(id: ID!): Datacenter
-
     clusters: [Cluster]
     cluster(id: ID!): Cluster
     datastores: [Datastore]
     datastore(id: ID!): Datastore
-    hosts: [Host]
+    hosts(filter: HostFilter): [Host]
     host(id: ID!): Host
-    networks(filter: NetworkFilter): [Network]
-    network(id: ID!): Network
+    networks(filter: NetworkFilter): [NetworkGroup]
+    network(id: ID!): NetworkGroup
 
     vms(filter: VMFilter): [VM]
     vm(id: ID!): VM
