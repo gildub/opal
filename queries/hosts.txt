@@ -1,0 +1,15 @@
+query Hosts {
+  hosts(filter: {inMaintenance: false}) {
+    id name inMaintenance cpuCores cpuSockets productName
+    datastores {id name}
+    vms(id: "vm-28", powerState: "On") { id name memoryMB powerState cpuCount coresPerSocket }
+  }
+}
+
+query Host {
+  host(id: "host-44.test") {
+    id name inMaintenance cpuCores cpuSockets
+    datastores {id name}
+    vms(id: "vm-28", powerState: "On") { id name memoryMB powerState cpuCount coresPerSocket }
+  }
+}

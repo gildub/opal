@@ -1,0 +1,49 @@
+query Datacenters {
+  datacenters {
+    id
+    name
+    clusters {
+      id
+      name
+      hosts {id name}
+      datastores {
+       id
+       name
+     }
+      networks {
+        ... on Network { id name kind }
+        ... on DVPortGroup { id name kind }
+        ... on DVSwitch { id name kind }
+      }
+    }
+    datastores { id name }
+    networks {
+      ... on Network { id name kind }
+      ... on DVPortGroup { id name kind }
+      ... on DVSwitch { id name kind }
+    }
+    # vms { id name }
+  }
+}
+
+query Datacenter {
+ datacenter(id: "datacenter-21.test") {
+   id
+   name
+     clusters {
+       id
+       name
+       hosts {
+         id
+         name
+       }
+     }
+   datastores { id name }
+   networks {
+     ... on Network { id name kind }
+     ... on DVPortGroup { id name kind }
+     ... on DVSwitch { id name kind }
+   }
+   # vms { id name }
+  }
+}

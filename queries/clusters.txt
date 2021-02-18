@@ -1,0 +1,39 @@
+query Clusters {
+  clusters {
+    id
+    name
+    hosts {
+      id
+      name
+    }
+    datastores {
+      id
+      name
+    }
+    networks {
+      ... on Network { id name kind }
+      ... on DVPortGroup { id name kind }
+      ... on DVSwitch { id name kind }
+    }
+  }
+}
+
+query Cluster {
+  cluster(id: "domain-c26.test") {
+    id
+    name
+    hosts {
+      id
+      name
+    }
+    datastores {
+      id
+      name
+    }
+    networks {
+      ... on Network { id name kind }
+      ... on DVPortGroup { id name kind }
+      ... on DVSwitch { id name kind }
+    }
+  }
+}

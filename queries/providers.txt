@@ -1,0 +1,53 @@
+query Providers {
+  providers {
+   id name product
+    datacenters {
+      id name
+      clusters {
+        id name
+        hosts {
+          id name inMaintenance cpuCores cpuSockets productName
+          datastores { id name }
+          vms(id: "vm-2861.test", powerState: "On") { id name memoryMB powerState cpuCount coresPerSocket }
+        }
+      }
+      datastores {
+        id name type capacity free maintenance
+        hosts { id name}
+        vms {id name}
+      }
+      networks {
+        ... on Network { id name kind }
+        ... on DVPortGroup { id name kind }
+        ... on DVSwitch { id name kind }
+      }
+    }
+  }
+}
+
+query Provider {
+  provider(name: "test") {
+    id name product
+    datacenters {
+      id name
+      clusters {
+        id name
+        hosts {
+          id name inMaintenance cpuCores cpuSockets productName
+          # datastores { id name }
+          vms(powerState: "Off") { id name memoryMB powerState cpuCount coresPerSocket }
+        }
+      }
+      # datastores {
+      #   id name type capacity free maintenance
+      #   hosts { id name}
+      #   vms {id name}
+      # }
+      # networks {
+      #   ... on Network { id name kind }
+      #   ... on DVPortGroup { id name kind }
+      #   ... on DVSwitch { id name kind }
+      # }
+    }
+  }
+}

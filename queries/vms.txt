@@ -1,0 +1,39 @@
+query VMs{
+  vms {
+    id name
+    host(id: "host-44.test") {
+      id inMaintenance cpuCores
+    }
+    networks {
+      ... on Network { id name kind }
+      ... on DVPortGroup { id name kind }
+      ... on DVSwitch { id name kind }
+    }
+  }
+}
+
+query VM {
+  vm(id: "vm-2844.test") {
+    id name cpuHotAddEnabled ipAddress powerState memoryMB firmware
+    concerns { label category assessment }
+    host(id: "host-44.test") {
+      id inMaintenance cpuCores
+    }
+  }
+}
+
+query VMsFiltered {
+  vms(filter: {id: "vm-28.*.test", cpuHotAddEnabled: false, powerState: "Off"}) {
+    id name cpuHotAddEnabled ipAddress powerState memoryMB firmware
+    concerns { label category assessment }
+    host(id: "host-44") {
+      id inMaintenance cpuCores
+    }
+    networks {
+      ... on Network { id name kind }
+      ... on DVPortGroup { id name kind }
+      ... on DVSwitch { id name kind }
+    }
+  }
+}
+

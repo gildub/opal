@@ -1,0 +1,60 @@
+query Folders {
+  folders {
+    ...FolderFields
+    ...ChildrenRecursive
+  }
+}
+
+query Folder{
+  # Datacenter folder
+  # folder(id: "group-d1.test") {
+  # Datastore folder
+  folder(id: "group-s24.test") {
+  # Host folder
+  # folder(id: "group-h23.test") {
+  # Network folder
+  # VM folder
+  # folder(id: "group-v22.test") {
+  # folder(id: "group-n25.test") {
+    ...FolderFields
+    ...ChildrenRecursive
+  }
+}
+
+fragment FolderFields on Folder {
+  id
+  name
+  kind
+  parent { kind id }
+  children {
+    ... on Datacenter {id name }
+    ... on Cluster {id name }
+    ... on Datastore {id name }
+    ... on Network {id name }
+    ... on DVPortGroup {id name }
+    ... on DVSwitch {id name }
+    ... on VM {id name }
+  }
+}
+
+fragment ChildrenRecursive on Folder {
+  children {
+    ...FolderFields
+    ... on Folder {
+      ...FolderFields
+      children {
+        ...FolderFields
+        ... on Folder {
+          ...FolderFields
+          children {
+            ...FolderFields
+            ... on Folder {
+              ...FolderFields
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

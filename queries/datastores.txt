@@ -1,0 +1,25 @@
+query Datastores {
+  datastores {
+    id
+    name
+    type
+    capacity
+    free
+    maintenance
+    hosts {id name}
+    vms {id name}
+  }
+}
+
+query Datastore {
+  datastore(id: "datastore-63.test") {
+    id
+    name
+    type
+    capacity
+    free
+    maintenance
+    hosts {id name}
+    vms {id name}
+  }
+}

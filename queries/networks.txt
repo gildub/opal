@@ -1,0 +1,8 @@
+query Networks {
+  networks {
+    ... on Network { id name kind }
+    ... on DVPortGroup { id name kind }
+    ... on DVSwitch { id name kind }
+  }
+}
+
