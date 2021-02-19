@@ -7,7 +7,7 @@
     "build": "tsc --project ./tsconfig.json",
     "build:dev": "tsc -w --project ./tsconfig.json",
     "start": "NODE_TLS_REJECT_UNAUTHORIZED='0' node dist/src/server.js",
-    "start:dev": "NODE_TLS_REJECT_UNAUTHORIZED='0' nodemon --watch dist/src dist/src/server.js",
+    "start:dev": "NODE_TLS_REJECT_UNAUTHORIZED='0' DEV=1 nodemon --watch dist/src dist/src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -34,6 +34,7 @@
     "typescript": "^4.1.4"
   },
   "dependencies": {
+    "@kubernetes/client-node": "^0.14.0",
     "apollo-datasource-rest": "^0.9.7",
     "apollo-server-express": "^2.19.2",
     "express": "^4.17.1",

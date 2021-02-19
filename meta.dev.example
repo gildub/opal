@@ -1,0 +1,13 @@
+{
+    "url": "https://forklift-inventory-openshift-migration.apps.cluster-jortel.v2v.bos.redhat.com",
+    "namespace": "openshift-migration",
+    "configNamespace": "openshift-migration",
+    "clusterApi": "https://kubernetes.default.svc.cluster.local",
+    "inventoryApi": "https://forklift-inventory.openshift-migration.svc.cluster.local:8443",
+    "oauth": {
+        "clientId": "forklift-ui",
+        "redirectUrl": "https://virt-openshift-migration.apps.cluster-jortel.v2v.bos.redhat.com/login/callback",
+        "userScope": "user:full",
+        "clientSecret": "bWlncmF0aW9ucy5vcGVuc2hpZnQuaW8K"
+    }
+}

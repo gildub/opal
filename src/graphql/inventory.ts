@@ -1,6 +1,6 @@
 import { RESTDataSource } from 'apollo-datasource-rest';
-import { isMatch, getFilters, getKey } from './helpers.js';
-import { inventoryAPIs, API } from './discovery.js';
+import { isMatch, getFilters } from './helpers.js';
+import { Meta } from './discovery.js';
 
 // TODO: use typegraphql.com approach to benefit from single source
 // of truth for type definition from graphql.
@@ -12,17 +12,16 @@ export type Provider = {
 };
 
 class inventoryAPI extends RESTDataSource {
-  APIs: API[];
+  meta: Meta;
 
-  constructor() {
+  constructor(meta) {
     super();
-    this.APIs = inventoryAPIs;
+    this.meta = meta;
   }
 
   getURL(): string {
-    const resourceBase = `namespaces/${this.APIs[0].namespace}/providers/vsphere`;
-    // TODO: Handle multi vsphere inventory case
-    return `${this.APIs[0].url}/${resourceBase}`;
+    const resourceBase = `namespaces/${this.meta.namespace}/providers/vsphere`;
+    return `${this.meta.url}/${resourceBase}`;
   }
 
   async getProviders() {
