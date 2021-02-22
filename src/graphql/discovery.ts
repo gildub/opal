@@ -68,7 +68,9 @@ kc.loadFromFile('./kube.conf');
 
 export const getInventoryService = async (namespace) => {
   const response = await getClusterServices(namespace);
-  return response.items.filter((e) => e.metadata.name === 'forklift-inventory');
+  return response.items.filter(
+    (item) => item.metadata && item.metadata.name === 'forklift-inventory'
+  );
 };
 
 export const getInventory = () => {
