@@ -65,15 +65,15 @@ const typeDefs = gql`
     id: ID!
     name: String
     productName: String
+    productVersion: String
     inMaintenance: Boolean
     cpuSockets: Int
     cpuCores: Int
     parent: Link
     path: String
-    productVersion: String
-    configNetwork: ConfigNetwork
-    networks: [NetworkGroup]
     datastores: [Datastore]
+    networking: ConfigNetwork
+    networks: [NetworkGroup]
     networkAdapters: [NetworkAdapter]
     vms(id: String, memoryMB: Int, powerState: String): [VM]
   }

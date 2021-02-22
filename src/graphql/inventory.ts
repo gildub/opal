@@ -191,17 +191,17 @@ class inventoryAPI extends RESTDataSource {
     return {
       id: `${host.id}.${provider}`,
       name: host.name,
+      productName: host.productName,
+      productVersion: host.productVersion,
       inMaintenance: host.inMaintenance,
       cpuCores: host.cpuCores,
       cpuSockets: host.cpuSockets,
-      productName: host.productName,
       parent: host.parent,
       path: host.path,
-      productVersion: host.productVersion,
       datastores: host.datastores,
-      // networking: host.networking,
-      // networks: host.networks,
-      // networkAdapters: host.networkAdapters,
+      networking: host.networking,
+      networks: host.networks,
+      networkAdapters: host.networkAdapters,
       vms: host.vms,
     };
   }

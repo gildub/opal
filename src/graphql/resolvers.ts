@@ -134,6 +134,12 @@ const resolvers = {
       const datastores = await dataSources.inventoryAPI.getDatastoresByIds(ids, filter);
       return datastores.filter((e) => e != null);
     },
+    networks: async (host, filter, { dataSources }) => {
+      const provider = getProvider(host.id);
+      const ids = host.networks.map((network) => `${network.id}.${provider}`);
+      const networks = await dataSources.inventoryAPI.getNetworksByIds(ids, filter);
+      return networks.filter((e) => e != null);
+    },
     vms: async (host, filter, { dataSources }) => {
       const ids = host.vms.map((vm) => `${vm.id}.${getProvider(host.id)}`);
       const vms = await dataSources.inventoryAPI.getVMsByIds(ids, filter);

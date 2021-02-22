@@ -11,5 +11,25 @@ query Host {
     id name inMaintenance cpuCores cpuSockets
     datastores {id name}
     vms(id: "vm-28", powerState: "On") { id name memoryMB powerState cpuCount coresPerSocket }
+    networking {
+      portGroups {
+        name key
+      }
+      vSwitches {
+        name
+        portGroups {
+          name
+        }
+        pNICs { key }
+      }
+      pNICs {
+        key
+        ipAddress
+      }
+      vNICs {
+        key
+        linkSpeed
+      }
+    }
   }
 }
