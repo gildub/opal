@@ -20,8 +20,11 @@ class inventoryAPI extends RESTDataSource {
   }
 
   getURL(): string {
-    const resourceBase = `namespaces/${this.meta.namespace}/providers/vsphere`;
-    return `${this.meta.url}/${resourceBase}`;
+    if (this.meta?.namespace) {
+      const resourceBase = `namespaces/${this.meta.namespace}/providers/vsphere`;
+      return `${this.meta.url}/${resourceBase}`;
+    }
+    return '';
   }
 
   async getProviders() {

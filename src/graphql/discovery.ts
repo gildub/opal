@@ -15,7 +15,7 @@ type MetaConfig = {
   };
 };
 
-type Meta = MetaConfig | null;
+export type Meta = MetaConfig | null;
 
 // const setConfigmapMeta: MetaConfig = defaultMeta;
 const setConfigmapMeta = () => defaultMeta;
@@ -105,5 +105,5 @@ export const getMeta = (): Meta | null => {
     const devMeta = setDevMeta();
     return devMeta ? devMeta : null;
   }
-  return setConfigmapMeta;
+  return setConfigmapMeta();
 };
