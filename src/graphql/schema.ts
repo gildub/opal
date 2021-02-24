@@ -69,7 +69,7 @@ const typeDefs = gql`
     inMaintenance: Boolean
     cpuSockets: Int
     cpuCores: Int
-    parent: Link
+    cluster: Link
     path: String
     datastores: [Datastore]
     networking: ConfigNetwork
@@ -162,6 +162,7 @@ const typeDefs = gql`
     id: ID!
     kind: String
     name: String
+    named: String
     path: String
     revision: Int
     selfLink: String

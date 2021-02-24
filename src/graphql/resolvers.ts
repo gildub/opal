@@ -128,6 +128,13 @@ const resolvers = {
     },
   },
   Host: {
+    cluster: async (host, filter, { dataSources }) => {
+      const response = await dataSources.inventoryAPI.getCluster(
+        `${host.cluster.id}.${getProvider(host.id)}`,
+        filter
+      );
+      return response;
+    },
     datastores: async (host, filter, { dataSources }) => {
       const provider = getProvider(host.id);
       const ids = host.datastores.map((datastore) => `${datastore.id}.${provider}`);
