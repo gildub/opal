@@ -191,6 +191,7 @@ class inventoryAPI extends RESTDataSource {
     return {
       id: `${host.id}.${provider}`,
       name: host.name,
+      kind: 'Host',
       productName: host.productName,
       productVersion: host.productVersion,
       inMaintenance: host.inMaintenance,
@@ -313,12 +314,15 @@ class inventoryAPI extends RESTDataSource {
   }
 
   VMReducer(provider, vm) {
+    for (const disk of vm.disks) {
+      disk.kind = 'Disk';
+    }
+
     return {
       id: `${vm.id}.${provider}`,
       kind: 'VM',
       parent: vm.parent,
       name: vm.name,
-      named: `${vm.name} (${vm.id})`,
       path: vm.path,
       uuid: vm.uuid,
       firmware: vm.firmware,

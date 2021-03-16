@@ -1,3 +1,25 @@
+query Datacenter {
+ datacenter(id: "datacenter-21.test") {
+   id
+   name
+     clusters {
+       id
+       name
+       hosts {
+         id
+         name
+       }
+     }
+   datastores { id name }
+   networks {
+     ... on Network { id name kind }
+     ... on DVPortGroup { id name kind }
+     ... on DVSwitch { id name kind }
+   }
+   # vms { id name }
+  }
+}
+
 query Datacenters {
   datacenters {
     id
@@ -22,28 +44,48 @@ query Datacenters {
       ... on DVPortGroup { id name kind }
       ... on DVSwitch { id name kind }
     }
-    # vms { id name }
+    vms { ... on VM { id name }}
   }
 }
 
-query Datacenter {
- datacenter(id: "datacenter-21.test") {
-   id
-   name
-     clusters {
-       id
-       name
-       hosts {
-         id
-         name
-       }
-     }
-   datastores { id name }
-   networks {
-     ... on Network { id name kind }
-     ... on DVPortGroup { id name kind }
-     ... on DVSwitch { id name kind }
-   }
-   # vms { id name }
+query DatacentersAndVMTemplates {
+  datacenters {
+    id
+    name
+    vms {
+      ...FolderFields
+      ...ChildrenRecursive
+      ... on VM {id name }
+    }
+  }
+}
+
+fragment FolderFields on Folder {
+  id
+  name
+  kind
+  children {
+    ... on VM {id name }
+  }
+}
+
+fragment ChildrenRecursive on Folder {
+  children {
+    ...FolderFields
+    ... on Folder {
+      ...FolderFields
+      children {
+        ...FolderFields
+        ... on Folder {
+          ...FolderFields
+          children {
+            ...FolderFields
+            ... on Folder {
+              ...FolderFields
+            }
+          }
+        }
+      }
+    }
   }
 }

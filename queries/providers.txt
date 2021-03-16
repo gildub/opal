@@ -8,7 +8,10 @@ query Providers {
         hosts {
           id name inMaintenance cpuCores cpuSockets productName
           datastores { id name }
-          vms(id: "vm-2861.test", powerState: "On") { id name memoryMB powerState cpuCount coresPerSocket }
+          vms(id: "vm-2861.test", powerState: "On") {
+            id name memoryMB powerState cpuCount coresPerSocket
+            disks {capacity shared}
+          }
         }
       }
       datastores {
@@ -34,20 +37,92 @@ query Provider {
         id name
         hosts {
           id name inMaintenance cpuCores cpuSockets productName
-          # datastores { id name }
+          datastores { id name }
           vms(powerState: "Off") { id name memoryMB powerState cpuCount coresPerSocket }
         }
       }
-      # datastores {
-      #   id name type capacity free maintenance
-      #   hosts { id name}
-      #   vms {id name}
-      # }
-      # networks {
-      #   ... on Network { id name kind }
-      #   ... on DVPortGroup { id name kind }
-      #   ... on DVSwitch { id name kind }
-      # }
+      datastores {
+        id name type capacity free maintenance
+        hosts { id name}
+        vms {id name}
+      }
+      networks {
+        ... on Network { id name kind }
+        ... on DVPortGroup { id name kind }
+        ... on DVSwitch { id name kind }
+      }
+    }
+  }
+}
+
+query StoragesTree {
+  providers {
+   id name product
+    datacenters {
+      id name
+      datastores {
+        id name type capacity free maintenance
+        hosts { id name}
+        vms {id name}
+      }
+    }
+  }
+}
+
+query NetworksTree {
+  providers {
+   id name product
+    datacenters {
+      id name
+      networks {
+        ... on Network { id name kind }
+        ... on DVPortGroup { id name kind }
+        ... on DVSwitch { id name kind }
+      }
+    }
+  }
+}
+
+query VMandTemplateTree {
+  providers {
+   id name product
+    datacenters {
+      id name
+      children: vms {
+        ...FolderFields
+        ...ChildrenRecursive
+        ... on VM {id name }
+      }
+    }
+  }
+}
+
+fragment FolderFields on Folder {
+  id
+  name
+  kind
+  children {
+    ... on VM {id name }
+  }
+}
+
+fragment ChildrenRecursive on Folder {
+  children {
+    ...FolderFields
+    ... on Folder {
+      ...FolderFields
+      children {
+        ...FolderFields
+        ... on Folder {
+          ...FolderFields
+          children {
+            ...FolderFields
+            ... on Folder {
+              ...FolderFields
+            }
+          }
+        }
+      }
     }
   }
 }

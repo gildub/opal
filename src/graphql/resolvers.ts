@@ -82,7 +82,7 @@ const resolvers = {
     },
     vms: async (datacenter, _, { dataSources }) => {
       const folderId = `${datacenter.vms.id}.${getProvider(datacenter.id)}`;
-      return await getChildren(folderId, dataSources, true);
+      return await getChildren(folderId, dataSources, false);
     },
   },
   Cluster: {

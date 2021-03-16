@@ -64,12 +64,13 @@ const typeDefs = gql`
   type Host {
     id: ID!
     name: String
+    kind: String
     productName: String
     productVersion: String
     inMaintenance: Boolean
     cpuSockets: Int
     cpuCores: Int
-    cluster: Link
+    cluster(id: String): Cluster
     path: String
     datastores: [Datastore]
     networking: ConfigNetwork
@@ -162,7 +163,6 @@ const typeDefs = gql`
     id: ID!
     kind: String
     name: String
-    named: String
     path: String
     revision: Int
     selfLink: String
@@ -195,9 +195,11 @@ const typeDefs = gql`
   }
 
   type Disk {
+    id: String
+    kind: String
     file: String
     datastore: Link
-    capacity: Int
+    capacity: String
     shared: Boolean
     rdm: Boolean
   }
