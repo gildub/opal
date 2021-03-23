@@ -433,9 +433,10 @@ class inventoryAPI extends RESTDataSource {
 
   VMCReducer(provider, namespace, vm) {
     return {
-      id: `${vm.name}.${provider}`,
+      id: `${vm.uid}.${provider}`,
       kind: 'VMC',
       name: vm.name,
+      uid: vm.uid,
       namespace: namespace,
     };
   }
