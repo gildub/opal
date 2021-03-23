@@ -7,7 +7,7 @@ import InventoryAPI from './graphql/inventory.js';
 import { getMeta } from './graphql/discovery.js';
 
 const inventory = getMeta();
-console.log(inventory);
+console.log('meta.json: ', inventory);
 const app = express();
 const port = 9002;
 

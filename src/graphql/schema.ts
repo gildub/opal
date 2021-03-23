@@ -210,6 +210,27 @@ const typeDefs = gql`
     assessment: String
   }
 
+  type Openshift {
+    id: String
+    kind: String
+    name: String
+    namespaces: [Namespace]
+  }
+
+  type Namespace {
+    id: String
+    kind: String
+    name: String
+    vmcs: [VMC]
+  }
+
+  type VMC {
+    id: String
+    kind: String
+    name: String
+    namespace: String
+  }
+
   input VMFilter {
     id: String
     cpuHotAddEnabled: Boolean
@@ -247,6 +268,9 @@ const typeDefs = gql`
 
     vms(filter: VMFilter): [VM]
     vm(id: ID!): VM
+    openshift: [Openshift]
+    namespaces: [Namespace]
+    vmcs: [VMC]
   }
 `;
 

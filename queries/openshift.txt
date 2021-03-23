@@ -1,0 +1,26 @@
+query Openshift {
+  openshift {
+    id kind name
+    children: namespaces {
+      id kind name
+      children: vmcs {
+        id kind name
+      }
+    }
+  }
+}
+
+query Namespaces {
+  namespaces {
+    id kind
+    vmcs {
+      id kind name
+    }
+  }
+}
+
+query VMCS {
+  vmcs {
+    id kind name
+  }
+}

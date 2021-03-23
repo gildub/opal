@@ -19,6 +19,10 @@ const resolvers = {
     network: (_, { id }, { dataSources }) => dataSources.inventoryAPI.getNetwork(id),
     vm: (_, { id }, { dataSources }) => dataSources.inventoryAPI.getVM(id),
     vms: (_, { filter }, { dataSources }) => dataSources.inventoryAPI.getVMs(filter),
+    //
+    openshift: (_, __, { dataSources }) => dataSources.inventoryAPI.getOpenshiftProviders(),
+    namespaces: (_, __, { dataSources }) => dataSources.inventoryAPI.getNamespaces(),
+    vmcs: (_, __, { dataSources }) => dataSources.inventoryAPI.getVMCs(),
   },
   FolderGroup: {
     __resolveType(obj) {
@@ -166,6 +170,21 @@ const resolvers = {
       const ids = vm.networks.map((network) => `${network.id}.${getProvider(vm.id)}`);
       const result = await dataSources.inventoryAPI.getNetworksByIds(ids, filter);
       return result.filter((e) => e != null);
+    },
+  },
+  Openshift: {
+    namespaces: async (provider, _, { dataSources }) => {
+      const result = await dataSources.inventoryAPI.getNamespacesByProvider(provider.name);
+      return result.filter((e) => e != null);
+    },
+  },
+  Namespace: {
+    vmcs: async (namespace, _, { dataSources }) => {
+      const vmcs = await dataSources.inventoryAPI.getVMCsByNamespace(
+        namespace.name,
+        getProvider(namespace.id)
+      );
+      return vmcs.filter((e) => e != null);
     },
   },
 };

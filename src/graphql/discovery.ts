@@ -15,7 +15,7 @@ type MetaConfig = {
   };
 };
 
-export type Meta = MetaConfig | null;
+export type Meta = MetaConfig;
 
 // const setConfigmapMeta: MetaConfig = defaultMeta;
 const setConfigmapMeta = () => defaultMeta;
@@ -23,8 +23,8 @@ const setConfigmapMeta = () => defaultMeta;
 // fetch configmap.
 const defaultMeta: MetaConfig = {
   url: 'https://forklift-inventory.openshift-migration.svc.cluster.local:8443',
-  namespace: 'openshift-gildub',
-  configNamespace: 'openshift-gildub',
+  namespace: 'konveyor-forklift',
+  configNamespace: 'konveyor-forklift',
   clusterApi: 'https://kubernetes.default.svc.cluster.local',
   inventoryApi: 'https://forklift-inventory.openshift-migration.svc.cluster.local:8443',
   oauth: {
@@ -90,10 +90,9 @@ const getClusterServices = async (namespace) => {
 };
 
 const setDevMeta = () => {
-  let devMeta: Meta = null;
   try {
     const file = readFileSync('./meta.dev.json', 'utf8');
-    devMeta = JSON.parse(file);
+    const devMeta = JSON.parse(file);
     return devMeta ? devMeta : null;
   } catch (err) {
     console.log('here');
