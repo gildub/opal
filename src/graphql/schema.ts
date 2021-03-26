@@ -215,13 +215,13 @@ const typeDefs = gql`
     kind: String
     name: String
     namespaces: [Namespace]
+    vmcs: [VMC]
   }
 
   type Namespace {
     id: String
     kind: String
     name: String
-    vmcs: [VMC]
   }
 
   type VMC {
@@ -254,7 +254,7 @@ const typeDefs = gql`
     folder(id: ID!): Folder
 
     providers: [Provider]
-    provider(name: String): Provider
+    provider(id: String): Provider
     datacenters: [Datacenter]
     datacenter(id: ID!): Datacenter
     clusters: [Cluster]

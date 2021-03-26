@@ -1,7 +1,6 @@
 import { RESTDataSource } from 'apollo-datasource-rest';
-import { isMatch, getFilters, getProvider } from './helpers.js';
+import { isMatch, getFilters } from './helpers.js';
 import { Meta } from './discovery.js';
-import { match } from 'assert';
 
 // TODO: use typegraphql.com approach to benefit from single source
 // of truth for type definition from graphql.
@@ -22,7 +21,7 @@ class inventoryAPI extends RESTDataSource {
 
   getVSpherePath(): string {
     if (this.meta?.namespace) {
-      const resourceBase = `namespaces/${this.meta.namespace}/providers/vsphere`;
+      const resourceBase = `providers/vsphere`;
       return `${this.meta.url}/${resourceBase}`;
     }
     return '';
@@ -30,7 +29,7 @@ class inventoryAPI extends RESTDataSource {
 
   getOpenshiftPath(): string {
     if (this.meta?.namespace) {
-      const resourceBase = `namespaces/${this.meta.namespace}/providers/openshift`;
+      const resourceBase = `providers/openshift`;
       return `${this.meta.url}/${resourceBase}`;
     }
     return '';
@@ -43,8 +42,8 @@ class inventoryAPI extends RESTDataSource {
       : [];
   }
 
-  async getOpenshiftProvider(name) {
-    const response = await this.get(`${this.getOpenshiftPath()}/${name}`);
+  async getOpenshiftProvider(providerId) {
+    const response = await this.get(`${this.getOpenshiftPath()}/${providerId}`);
     return this.openshiftReducer(response);
   }
 
@@ -52,19 +51,21 @@ class inventoryAPI extends RESTDataSource {
     return {
       id: provider.uid,
       name: provider.name,
+      // namespace: provider.namespace,
       kind: 'Openshift',
     };
   }
 
   async getProviders() {
     const response = await this.get(`${this.getVSpherePath()}?detail=1`);
+
     return Array.isArray(response)
       ? response.map((provider) => this.providerReducer(provider))
       : [];
   }
 
-  async getProvider(name) {
-    const response = await this.get(`${this.getVSpherePath()}/${name}`);
+  async getProvider(providerId) {
+    const response = await this.get(`${this.getVSpherePath()}/${providerId}`);
     return this.providerReducer(response);
   }
 
@@ -79,23 +80,21 @@ class inventoryAPI extends RESTDataSource {
 
   async getFolders() {
     const providers = await this.getProviders();
-    const result = Promise.all(
-      providers.map((provider) => this.getFoldersByProvider(provider.name))
-    );
+    const result = Promise.all(providers.map((provider) => this.getFoldersByProvider(provider.id)));
     return (await result).flat();
   }
 
-  async getFoldersByProvider(provider) {
-    const response = await this.get(`${this.getVSpherePath()}/${provider}/folders?detail=1`);
+  async getFoldersByProvider(providerId) {
+    const response = await this.get(`${this.getVSpherePath()}/${providerId}/folders?detail=1`);
     return Array.isArray(response)
-      ? response.map((folder) => this.folderReducer(provider, folder))
+      ? response.map((folder) => this.folderReducer(providerId, folder))
       : [];
   }
 
   async getFolder(id) {
-    const [key, provider] = id.split('.');
-    const response = await this.get(`${this.getVSpherePath()}/${provider}/folders/${key}`);
-    return this.folderReducer(provider, response);
+    const [key, providerId] = id.split('.');
+    const response = await this.get(`${this.getVSpherePath()}/${providerId}/folders/${key}`);
+    return this.folderReducer(providerId, response);
   }
 
   async getFoldersByIds(ids, filter = {}) {
@@ -115,27 +114,27 @@ class inventoryAPI extends RESTDataSource {
   async getDatacenters() {
     const providers = await this.getProviders();
     const result = Promise.all(
-      providers.map((provider) => this.getDatacentersByProvider(provider.name))
+      providers.map((provider) => this.getDatacentersByProvider(provider.id))
     );
     return (await result).flat();
   }
 
-  async getDatacentersByProvider(provider) {
-    const response = await this.get(`${this.getVSpherePath()}/${provider}/datacenters?detail=1`);
+  async getDatacentersByProvider(providerId) {
+    const response = await this.get(`${this.getVSpherePath()}/${providerId}/datacenters?detail=1`);
     return Array.isArray(response)
-      ? response.map((datacenter) => this.datacenterReducer(provider, datacenter))
+      ? response.map((datacenter) => this.datacenterReducer(providerId, datacenter))
       : [];
   }
 
   async getDatacenter(id) {
-    const [key, provider] = id.split('.');
-    const response = await this.get(`${this.getVSpherePath()}/${provider}/datacenters/${key}`);
-    return this.datacenterReducer(provider, response);
+    const [key, providerId] = id.split('.');
+    const response = await this.get(`${this.getVSpherePath()}/${providerId}/datacenters/${key}`);
+    return this.datacenterReducer(providerId, response);
   }
 
-  datacenterReducer(provider, datacenter) {
+  datacenterReducer(providerId, datacenter) {
     return {
-      id: `${datacenter.id}.${provider}`,
+      id: `${datacenter.id}.${providerId}`,
       kind: 'Datacenter',
       name: datacenter.name,
       clusters: datacenter.clusters,
@@ -148,7 +147,7 @@ class inventoryAPI extends RESTDataSource {
   async getClusters() {
     const providers = await this.getProviders();
     const result = Promise.all(
-      providers.map((provider) => this.getClustersByProvider(provider.name))
+      providers.map((provider) => this.getClustersByProvider(provider.id))
     );
     return (await result).flat();
   }
@@ -192,7 +191,7 @@ class inventoryAPI extends RESTDataSource {
   async getHosts(filter = {}) {
     const providers = await this.getProviders();
     const result = Promise.all(
-      providers.map((provider) => this.getHostsByProvider(provider.name, filter))
+      providers.map((provider) => this.getHostsByProvider(provider.id, filter))
     );
     return (await result).flat();
   }
@@ -239,7 +238,7 @@ class inventoryAPI extends RESTDataSource {
   async getDatastores() {
     const providers = await this.getProviders();
     const result = Promise.all(
-      providers.map((provider) => this.getDatastoresByProvider(provider.name))
+      providers.map((provider) => this.getDatastoresByProvider(provider.id))
     );
     return (await result).flat();
   }
@@ -280,7 +279,7 @@ class inventoryAPI extends RESTDataSource {
   async getNetworks(filter = {}) {
     const providers = await this.getProviders();
     const result = Promise.all(
-      providers.map((provider) => this.getNetworksByProvider(provider.name, filter))
+      providers.map((provider) => this.getNetworksByProvider(provider.id, filter))
     );
     return (await result).flat();
   }
@@ -320,7 +319,7 @@ class inventoryAPI extends RESTDataSource {
   async getVMs(filter = {}) {
     const providers = await this.getProviders();
     const result = Promise.all(
-      providers.map((provider) => this.getVMsByProvider(provider.name, filter))
+      providers.map((provider) => this.getVMsByProvider(provider.id, filter))
     );
     return (await result).flat();
   }
@@ -332,9 +331,9 @@ class inventoryAPI extends RESTDataSource {
   }
 
   async getVM(id, filter = {}) {
-    const [key, provider] = id.split('.');
-    const response = await this.get(`${this.getVSpherePath()}/${provider}/vms/${key}`);
-    const vm = this.VMReducer(provider, response);
+    const [key, providerId] = id.split('.');
+    const response = await this.get(`${this.getVSpherePath()}/${providerId}/vms/${key}`);
+    const vm = this.VMReducer(providerId, response);
     return isMatch(vm, getFilters(filter)) ? vm : null;
   }
 
@@ -380,7 +379,7 @@ class inventoryAPI extends RESTDataSource {
   async getNamespaces() {
     const providers = await this.getOpenshiftProviders();
     const result = Promise.all(
-      providers.map((provider) => this.getNamespacesByProvider(provider.name))
+      providers.map((provider) => this.getNamespacesByProvider(provider.id))
     );
     return (await result).flat();
   }
@@ -407,37 +406,28 @@ class inventoryAPI extends RESTDataSource {
   async getVMCs(filter = {}) {
     const providers = await this.getOpenshiftProviders();
     const result = Promise.all(
-      providers.map((provider) => this.getVMCsByProvider(provider.name, filter))
+      providers.map((provider) => this.getVMCsByProvider(provider.id, filter))
     );
     return (await result).flat();
   }
 
-  async getVMCsByProvider(providerName, filter = {}) {
-    const namespace = this.meta.namespace;
-    const vmcs = await this.getVMCsByNamespace(namespace, providerName);
+  async getVMCsByProvider(providerId, filter = {}) {
+    const response = await this.get(`${this.getOpenshiftPath()}/${providerId}/vms?detail=1`);
+
+    const vmcs = Array.isArray(response)
+      ? response.map((vmc) => this.VMCReducer(providerId, vmc))
+      : [];
+
     return vmcs.filter((vmc) => isMatch(vmc, getFilters(filter)));
   }
 
-  async getVMCsByNamespace(namespace, providerName) {
-    //TODO: Clarify openshift inventory
-    if (namespace !== this.meta.namespace) return [];
-
-    const response = await this.get(
-      `${this.getOpenshiftPath()}/${providerName}/namespaces/${namespace}/vms?detail=1`
-    );
-    const vmcs = Array.isArray(response)
-      ? response.map((vmc) => this.VMCReducer(providerName, namespace, vmc))
-      : [];
-    return vmcs ? vmcs : [];
-  }
-
-  VMCReducer(provider, namespace, vm) {
+  VMCReducer(provider, vmc) {
     return {
-      id: `${vm.uid}.${provider}`,
+      id: `${vmc.uid}.${provider}`,
       kind: 'VMC',
-      name: vm.name,
-      uid: vm.uid,
-      namespace: namespace,
+      name: vmc.name,
+      uid: vmc.uid,
+      namespace: vmc.namespace,
     };
   }
 }

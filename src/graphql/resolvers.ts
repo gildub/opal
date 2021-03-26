@@ -6,7 +6,7 @@ const resolvers = {
     folders: (_, __, { dataSources }) => dataSources.inventoryAPI.getFolders(),
     folder: (_, { id }, { dataSources }) => dataSources.inventoryAPI.getFolder(id),
     providers: (_, __, { dataSources }): Provider[] => dataSources.inventoryAPI.getProviders(),
-    provider: (_, { name }, { dataSources }) => dataSources.inventoryAPI.getProvider(name),
+    provider: (_, { id }, { dataSources }) => dataSources.inventoryAPI.getProvider(id),
     datacenters: (_, __, { dataSources }) => dataSources.inventoryAPI.getDatacenters(),
     datacenter: (_, { id }, { dataSources }) => dataSources.inventoryAPI.getDatacenter(id),
     clusters: (_, __, { dataSources }) => dataSources.inventoryAPI.getClusters(),
@@ -67,7 +67,7 @@ const resolvers = {
   },
   Provider: {
     datacenters: async (provider, _, { dataSources }) => {
-      const result = await dataSources.inventoryAPI.getDatacentersByProvider(provider.name);
+      const result = await dataSources.inventoryAPI.getDatacentersByProvider(provider.id);
       return result.filter((e) => e != null);
     },
   },
@@ -140,14 +140,14 @@ const resolvers = {
       return response;
     },
     datastores: async (host, filter, { dataSources }) => {
-      const provider = getProvider(host.id);
-      const ids = host.datastores.map((datastore) => `${datastore.id}.${provider}`);
+      const providerId = getProvider(host.id);
+      const ids = host.datastores.map((datastore) => `${datastore.id}.${providerId}`);
       const datastores = await dataSources.inventoryAPI.getDatastoresByIds(ids, filter);
       return datastores.filter((e) => e != null);
     },
     networks: async (host, filter, { dataSources }) => {
-      const provider = getProvider(host.id);
-      const ids = host.networks.map((network) => `${network.id}.${provider}`);
+      const providerId = getProvider(host.id);
+      const ids = host.networks.map((network) => `${network.id}.${providerId}`);
       const networks = await dataSources.inventoryAPI.getNetworksByIds(ids, filter);
       return networks.filter((e) => e != null);
     },
@@ -174,16 +174,11 @@ const resolvers = {
   },
   Openshift: {
     namespaces: async (provider, _, { dataSources }) => {
-      const result = await dataSources.inventoryAPI.getNamespacesByProvider(provider.name);
+      const result = await dataSources.inventoryAPI.getNamespacesByProvider(provider.id);
       return result.filter((e) => e != null);
     },
-  },
-  Namespace: {
-    vmcs: async (namespace, _, { dataSources }) => {
-      const vmcs = await dataSources.inventoryAPI.getVMCsByNamespace(
-        namespace.name,
-        getProvider(namespace.id)
-      );
+    vmcs: async (provider, _, { dataSources }) => {
+      const vmcs = await dataSources.inventoryAPI.getVMCsByProvider(provider.id);
       return vmcs.filter((e) => e != null);
     },
   },
