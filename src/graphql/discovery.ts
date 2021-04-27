@@ -26,7 +26,8 @@ const defaultMeta: MetaConfig = {
   namespace: 'konveyor-forklift',
   configNamespace: 'konveyor-forklift',
   clusterApi: 'https://kubernetes.default.svc.cluster.local',
-  inventoryApi: 'https://forklift-inventory.openshift-migration.svc.cluster.local:8443',
+  // inventoryApi: 'https://forklift-inventory.openshift-migration.svc.cluster.local:8443',
+  inventoryApi: 'https://localhost:8080',
   oauth: {
     clientId: 'forklift-opal',
     redirectUrl:
@@ -60,7 +61,7 @@ kc.loadFromOptions({
   currentContext: context.name,
 });
 
-kc.loadFromFile('./kube.conf');
+kc.loadFromFile('/home/gildub/.kube/config');
 
 // Needed until Configmap ready
 // const inventory = await getInventoryService('openshift-migration');
@@ -84,7 +85,6 @@ const getClusterServices = async (namespace) => {
     const response = await k8sApi.listNamespacedService(namespace).then((data) => data.body);
     return response;
   } catch (err) {
-    console.log(err);
     throw err;
   }
 };
